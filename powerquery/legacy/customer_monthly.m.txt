@@ -1,0 +1,609 @@
+let
+    // =========================================================
+    // 1. RAW TRANSACTIONS
+    // =========================================================
+    Source = transactions_data,
+
+    KeepColumns =
+        Table.SelectColumns(
+            Source,
+            {"customer_id", "date", "amount", "type"}
+        ),
+
+    ChangeTypes =
+        Table.TransformColumnTypes(
+            KeepColumns,
+            {
+                {"customer_id", type text},
+                {"date", type date},
+                {"amount", type number},
+                {"type", type text}
+            }
+        ),
+
+    RemoveInvalidRows =
+        Table.SelectRows(
+            ChangeTypes,
+            each [customer_id] <> null
+                and [date] <> null
+        ),
+
+    // =========================================================
+    // 2. CREATE MONTH COLUMN
+    // =========================================================
+    AddMonth =
+        Table.AddColumn(
+            RemoveInvalidRows,
+            "Month",
+            each Date.StartOfMonth([date]),
+            type date
+        ),
+
+    // =========================================================
+    // 3. AGGREGATE REAL TRANSACTIONS BY CUSTOMER + MONTH
+    // =========================================================
+    MonthlyTransactions =
+        Table.Group(
+            AddMonth,
+            {"customer_id", "Month"},
+            {
+                {
+                    "TransactionCount",
+                    each Table.RowCount(_),
+                    Int64.Type
+                },
+
+                {
+                    "TotalAmount",
+                    each List.Sum([amount]),
+                    type number
+                },
+
+                {
+                    "AverageAmount",
+                    each List.Average([amount]),
+                    type number
+                },
+
+                {
+                    "MaxAmount",
+                    each List.Max([amount]),
+                    type number
+                },
+
+                {
+                    "TransferCount",
+                    each Table.RowCount(
+                        Table.SelectRows(_, each [type] = "Transfer")
+                    ),
+                    Int64.Type
+                },
+
+                {
+                    "PaymentCount",
+                    each Table.RowCount(
+                        Table.SelectRows(_, each [type] = "Payment")
+                    ),
+                    Int64.Type
+                },
+
+                {
+                    "WithdrawalCount",
+                    each Table.RowCount(
+                        Table.SelectRows(_, each [type] = "Withdrawal")
+                    ),
+                    Int64.Type
+                },
+
+                {
+                    "DepositCount",
+                    each Table.RowCount(
+                        Table.SelectRows(_, each [type] = "Deposit")
+                    ),
+                    Int64.Type
+                },
+
+                {
+                    "TransferAmount",
+                    each List.Sum(
+                        Table.SelectRows(_, each [type] = "Transfer")[amount]
+                    ),
+                    type number
+                },
+
+                {
+                    "PaymentAmount",
+                    each List.Sum(
+                        Table.SelectRows(_, each [type] = "Payment")[amount]
+                    ),
+                    type number
+                },
+
+                {
+                    "WithdrawalAmount",
+                    each List.Sum(
+                        Table.SelectRows(_, each [type] = "Withdrawal")[amount]
+                    ),
+                    type number
+                },
+
+                {
+                    "DepositAmount",
+                    each List.Sum(
+                        Table.SelectRows(_, each [type] = "Deposit")[amount]
+                    ),
+                    type number
+                },
+
+                {
+                    "FirstTransactionDate",
+                    each List.Min([date]),
+                    type date
+                },
+
+                {
+                    "LastTransactionDate",
+                    each List.Max([date]),
+                    type date
+                },
+                {   
+                    "ActiveDays",
+                    each List.Count(List.Distinct([date])),
+                    Int64.Type
+                },
+
+                {   
+                    "WeekendTransactionCount",
+                    each Table.RowCount(
+                        Table.SelectRows(
+                            _,
+                            each Date.DayOfWeek([date], Day.Monday) >= 5
+                        )
+                    ),
+                    Int64.Type
+                }
+            }
+        ),
+
+    // =========================================================
+    // 4. FIND WHEN EACH CUSTOMER FIRST APPEARED
+    // =========================================================
+    CustomerStart =
+        Table.Group(
+            AddMonth,
+            {"customer_id"},
+            {
+                {
+                    "CustomerStartMonth",
+                    each List.Min([Month]),
+                    type date
+                }
+            }
+        ),
+
+    // Last month available anywhere in the dataset
+    DatasetLastMonth =
+        List.Max(AddMonth[Month]),
+
+    // =========================================================
+    // 5. GENERATE EVERY MONTH FOR EVERY CUSTOMER
+    //
+    // Example:
+    // C001 Jan
+    // C001 Feb
+    // C001 Mar
+    // C001 Apr
+    //
+    // even if Apr has no transactions
+    // =========================================================
+    AddMonthList =
+        Table.AddColumn(
+            CustomerStart,
+            "Month",
+            each
+                List.Generate(
+                    () => [CustomerStartMonth],
+                    (CurrentMonth) => CurrentMonth <= DatasetLastMonth,
+                    (CurrentMonth) => Date.AddMonths(CurrentMonth, 1)
+                )
+        ),
+
+    CustomerMonthScaffold =
+        Table.ExpandListColumn(
+            AddMonthList,
+            "Month"
+        ),
+
+    SetMonthType =
+        Table.TransformColumnTypes(
+            CustomerMonthScaffold,
+            {{"Month", type date}}
+        ),
+
+    // =========================================================
+    // 6. JOIN REAL ACTIVITY TO COMPLETE CUSTOMER-MONTH TABLE
+    // =========================================================
+    MergeTransactions =
+        Table.NestedJoin(
+            SetMonthType,
+            {"customer_id", "Month"},
+            MonthlyTransactions,
+            {"customer_id", "Month"},
+            "Activity",
+            JoinKind.LeftOuter
+        ),
+
+    ExpandActivity =
+        Table.ExpandTableColumn(
+            MergeTransactions,
+            "Activity",
+            {
+                "TransactionCount",
+                "TotalAmount",
+                "AverageAmount",
+                "MaxAmount",
+                "TransferCount",
+                "PaymentCount",
+                "WithdrawalCount",
+                "DepositCount",
+                "TransferAmount",
+                "PaymentAmount",
+                "WithdrawalAmount",
+                "DepositAmount",
+                "FirstTransactionDate",
+                "LastTransactionDate",
+                "ActiveDays",
+                "WeekendTransactionCount"
+            }
+        ),
+
+    // =========================================================
+    // 7. ZERO-FILL MONTHS WITH NO TRANSACTIONS
+    // =========================================================
+    ZeroFill =
+        Table.ReplaceValue(
+            ExpandActivity,
+            null,
+            0,
+            Replacer.ReplaceValue,
+            {
+                "TransactionCount",
+                "TotalAmount",
+                "AverageAmount",
+                "MaxAmount",
+                "TransferCount",
+                "PaymentCount",
+                "WithdrawalCount",
+                "DepositCount",
+                "TransferAmount",
+                "PaymentAmount",
+                "WithdrawalAmount",
+                "DepositAmount",
+                "ActiveDays",
+                "WeekendTransactionCount"
+            }
+        ),
+
+    // Flag complete inactivity
+        // =========================================================
+    // 7B. ADD TRANSACTION BEHAVIOR FEATURES
+    // =========================================================
+
+    // Average transactions per calendar day during the month
+    AddTransactionFrequency =
+        Table.AddColumn(
+            ZeroFill,
+            "TransactionFrequency",
+            each
+                [TransactionCount]
+                / Date.DaysInMonth([Month]),
+            type number
+        ),
+
+    // Percentage of monthly transactions made on weekends
+    AddWeekendRatio =
+        Table.AddColumn(
+            AddTransactionFrequency,
+            "WeekendTransactionRatio",
+            each
+                if [TransactionCount] = 0 then 0
+                else
+                    [WeekendTransactionCount]
+                    / [TransactionCount],
+            Percentage.Type
+        ),
+
+    // Number of months since this customer first appeared
+    AddTenureMonths =
+        Table.AddColumn(
+            AddWeekendRatio,
+            "TenureMonths",
+            each
+                (
+                    Date.Year([Month])
+                    - Date.Year([CustomerStartMonth])
+                ) * 12
+                +
+                (
+                    Date.Month([Month])
+                    - Date.Month([CustomerStartMonth])
+                ),
+            Int64.Type
+        ),
+
+    // Most frequent transaction type in the current month
+    AddPreferredTransactionType =
+        Table.AddColumn(
+            AddTenureMonths,
+            "PreferredTransactionType",
+            each
+                if [TransactionCount] = 0 then
+                    null
+                else
+                    let
+                        Types = {
+                            {"Transfer", [TransferCount]},
+                            {"Payment", [PaymentCount]},
+                            {"Withdrawal", [WithdrawalCount]},
+                            {"Deposit", [DepositCount]}
+                        },
+
+                        MaxCount =
+                            List.Max(
+                                List.Transform(
+                                    Types,
+                                    each _{1}
+                                )
+                            ),
+
+                        Winner =
+                            List.First(
+                                List.Select(
+                                    Types,
+                                    each _{1} = MaxCount
+                                )
+                            )
+                    in
+                        Winner{0},
+            type text
+        ),
+
+    // =========================================================
+    // TRANSACTION TYPE SHARES
+    // =========================================================
+
+    AddPaymentShare =
+        Table.AddColumn(
+            AddPreferredTransactionType,
+            "PaymentShare",
+            each
+                if [TransactionCount] = 0 then 0
+                else [PaymentCount] / [TransactionCount],
+            Percentage.Type
+        ),
+
+    AddTransferShare =
+        Table.AddColumn(
+            AddPaymentShare,
+            "TransferShare",
+            each
+                if [TransactionCount] = 0 then 0
+                else [TransferCount] / [TransactionCount],
+            Percentage.Type
+        ),
+
+    AddWithdrawalShare =
+        Table.AddColumn(
+            AddTransferShare,
+            "WithdrawalShare",
+            each
+                if [TransactionCount] = 0 then 0
+                else [WithdrawalCount] / [TransactionCount],
+            Percentage.Type
+        ),
+
+    AddDepositShare =
+        Table.AddColumn(
+            AddWithdrawalShare,
+            "DepositShare",
+            each
+                if [TransactionCount] = 0 then 0
+                else [DepositCount] / [TransactionCount],
+            Percentage.Type
+        ),
+
+    // Flag complete inactivity
+    AddInactiveFlag =
+        Table.AddColumn(
+            AddDepositShare,
+            "InactiveMonth",
+            each if [TransactionCount] = 0 then 1 else 0,
+            Int64.Type
+        ),
+
+    // =========================================================
+    // 8. BUILD PREVIOUS-MONTH VALUES
+    // =========================================================
+    PreviousMonthBase =
+        Table.SelectColumns(
+            AddInactiveFlag,
+            {
+                "customer_id",
+                "Month",
+                "TransactionCount",
+                "TotalAmount",
+                "PaymentCount",
+                "WithdrawalCount",
+                "DepositCount",
+                "TransferCount"
+            }
+        ),
+
+    ShiftPreviousMonth =
+        Table.TransformColumns(
+            PreviousMonthBase,
+            {
+                {
+                    "Month",
+                    each Date.AddMonths(_, 1),
+                    type date
+                }
+            }
+        ),
+
+    RenamePreviousMetrics =
+        Table.RenameColumns(
+            ShiftPreviousMonth,
+            {
+                {
+                    "TransactionCount",
+                    "PreviousTransactionCount"
+                },
+                {
+                    "TotalAmount",
+                    "PreviousTotalAmount"
+                },
+                {
+                    "PaymentCount",
+                    "PreviousPaymentCount"
+                },
+                {
+                    "WithdrawalCount",
+                    "PreviousWithdrawalCount"
+                },
+                {
+                    "DepositCount",
+                    "PreviousDepositCount"
+                },
+                {
+                    "TransferCount",
+                    "PreviousTransferCount"
+                }
+            }
+        ),
+
+    // =========================================================
+    // 9. JOIN PREVIOUS MONTH TO CURRENT MONTH
+    // =========================================================
+    MergePreviousMonth =
+        Table.NestedJoin(
+            AddInactiveFlag,
+            {"customer_id", "Month"},
+            RenamePreviousMetrics,
+            {"customer_id", "Month"},
+            "PreviousMonth",
+            JoinKind.LeftOuter
+        ),
+
+    ExpandPreviousMonth =
+        Table.ExpandTableColumn(
+            MergePreviousMonth,
+            "PreviousMonth",
+            {
+                "PreviousTransactionCount",
+                "PreviousTotalAmount",
+                "PreviousPaymentCount",
+                "PreviousWithdrawalCount",
+                "PreviousDepositCount",
+                "PreviousTransferCount"
+            }
+        ),
+
+    // =========================================================
+    // 10. MONTH-OVER-MONTH FEATURES
+    // =========================================================
+    AddTransactionChange =
+        Table.AddColumn(
+            ExpandPreviousMonth,
+            "TransactionCountChange",
+            each
+                if [PreviousTransactionCount] = null then null
+                else [TransactionCount] - [PreviousTransactionCount],
+            Int64.Type
+        ),
+
+    AddTransactionChangePct =
+        Table.AddColumn(
+            AddTransactionChange,
+            "TransactionCountChangePct",
+            each
+                if [PreviousTransactionCount] = null then null
+
+                else if [PreviousTransactionCount] = 0
+                    and [TransactionCount] = 0
+                then 0
+
+                else if [PreviousTransactionCount] = 0
+                then null
+
+                else
+                    (
+                        [TransactionCount]
+                        - [PreviousTransactionCount]
+                    )
+                    / [PreviousTransactionCount],
+            Percentage.Type
+        ),
+
+    AddAmountChange =
+        Table.AddColumn(
+            AddTransactionChangePct,
+            "TotalAmountChange",
+            each
+                if [PreviousTotalAmount] = null then null
+                else [TotalAmount] - [PreviousTotalAmount],
+            type number
+        ),
+
+    AddAmountChangePct =
+        Table.AddColumn(
+            AddAmountChange,
+            "TotalAmountChangePct",
+            each
+                if [PreviousTotalAmount] = null then null
+
+                else if [PreviousTotalAmount] = 0
+                    and [TotalAmount] = 0
+                then 0
+
+                else if [PreviousTotalAmount] = 0
+                then null
+
+                else
+                    (
+                        [TotalAmount]
+                        - [PreviousTotalAmount]
+                    )
+                    / [PreviousTotalAmount],
+            Percentage.Type
+        ),
+
+    // =========================================================
+    // 11. SIMPLE ACTIVITY DECLINE FLAG
+    // =========================================================
+    AddActivityDeclineFlag =
+        Table.AddColumn(
+            AddAmountChangePct,
+            "ActivityDeclineFlag",
+            each
+                if [TransactionCountChangePct] <> null
+                    and [TransactionCountChangePct] <= -0.5
+                then 1
+                else 0,
+            Int64.Type
+        ),
+
+    // =========================================================
+    // 12. SORT
+    // =========================================================
+    RenameForClarity =
+    Table.RenameColumns(
+        AddActivityDeclineFlag,
+        {
+            {"TenureMonths", "ObservedTenureMonths"},
+            {"TransactionFrequency", "TransactionsPerCalendarDay"}
+        }
+    )
+
+in
+    RenameForClarity

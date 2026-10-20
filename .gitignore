@@ -1,0 +1,28 @@
+# Python environments and build caches
+.venv/
+scripts/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.duckdb
+*.duckdb.wal
+
+# Customer-level source, intermediate tables and prediction exports (private)
+/data/raw/
+/data/processed/
+/reports/*.csv
+/outputs/*.csv
+/outputs/*.parquet
+/outputs/*.json
+/models/
+
+# All Power BI binary models and backups contain source customer records
+powerbi/*.pbix
+powerbi/*.pbit
+powerbi/**/*.pbix
+powerbi/**/*.pbit
+
+# Desktop/editor state
+Thumbs.db
+.DS_Store
+.vscode/

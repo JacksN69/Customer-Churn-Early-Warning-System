@@ -1,0 +1,9 @@
+EVALUATE
+ROW(
+"CustomerMonthlyRows",COUNTROWS(CustomerMonthly),
+"ChurnFeaturesRows",COUNTROWS(ChurnFeatures),
+"DimCustomerRows",COUNTROWS(DimCustomer),
+"TransactionCount",SUM(ChurnFeatures[TransactionCount]),
+"Eligible",CALCULATE(COUNTROWS(ChurnFeatures),ChurnFeatures[EligibleForTraining]=1),
+"Positives",CALCULATE(COUNTROWS(ChurnFeatures),ChurnFeatures[EligibleForTraining]=1,ChurnFeatures[InactiveNextMonth]=1)
+)

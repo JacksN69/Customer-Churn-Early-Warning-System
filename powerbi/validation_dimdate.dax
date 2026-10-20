@@ -1,0 +1,8 @@
+EVALUATE
+ADDCOLUMNS(
+    DimDate,
+    "ChurnRowsRelated", CALCULATE(COUNTROWS(ChurnFeatures)),
+    "CustomerMonthlyRowsRelated", CALCULATE(COUNTROWS(CustomerMonthly))
+)
+ORDER BY DimDate[Date]
+

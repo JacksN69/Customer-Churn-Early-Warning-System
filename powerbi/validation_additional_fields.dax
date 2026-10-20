@@ -1,0 +1,13 @@
+// Additional source-derived fields not included in original 44-field Power BI parity run.
+EVALUATE
+SELECTCOLUMNS(ChurnFeatures,
+  "customer_id", ChurnFeatures[customer_id],
+  "Month", ChurnFeatures[Month],
+  "CustomerStartMonth", ChurnFeatures[CustomerStartMonth],
+  "AverageAmount", ChurnFeatures[AverageAmount],
+  "MaxAmount", ChurnFeatures[MaxAmount],
+  "PreviousPaymentCount", ChurnFeatures[PreviousPaymentCount],
+  "PreviousWithdrawalCount", ChurnFeatures[PreviousWithdrawalCount],
+  "PreviousDepositCount", ChurnFeatures[PreviousDepositCount],
+  "PreviousTransferCount", ChurnFeatures[PreviousTransferCount]
+)

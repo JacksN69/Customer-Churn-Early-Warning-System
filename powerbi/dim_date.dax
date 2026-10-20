@@ -1,0 +1,13 @@
+DimDate =
+VAR FirstMonth = DATE ( YEAR ( MIN ( ChurnFeatures[Month] ) ), MONTH ( MIN ( ChurnFeatures[Month] ) ), 1 )
+VAR MonthSpan = DATEDIFF ( FirstMonth, MAX ( ChurnFeatures[Month] ), MONTH )
+RETURN
+    ADDCOLUMNS (
+        SELECTCOLUMNS ( GENERATESERIES ( 0, MonthSpan ), "Date", EDATE ( FirstMonth, [Value] ) ),
+        "Year", YEAR ( [Date] ),
+        "MonthNumber", MONTH ( [Date] ),
+        "MonthName", FORMAT ( [Date], "mmmm" ),
+        "YearMonth", FORMAT ( [Date], "yyyy-MM" ),
+        "YearMonthSort", YEAR ( [Date] ) * 100 + MONTH ( [Date] ),
+        "Quarter", "Q" & ROUNDUP ( MONTH ( [Date] ) / 3, 0 )
+    )

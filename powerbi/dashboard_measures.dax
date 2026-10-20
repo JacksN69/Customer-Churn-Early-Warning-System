@@ -1,0 +1,184 @@
+-- Auto-generated DAX catalog for the 6-page German IBCS Dashboard
+
+-- Folder: 01 Historischer Trend | Format: 0.00 %
+ChurnFeatures[Beobachtete Inaktivitätsquote (Historisch)] = CALCULATE ( AVERAGE ( ChurnFeatures[InactiveNextMonth] ), ChurnFeatures[EligibleForTraining] = 1, REMOVEFILTERS ( ChurnPredictions ) )
+
+-- Folder: 01 Historischer Trend | Format: #,0
+ChurnFeatures[Qualifizierte Aktive Kunden (Historisch)] = CALCULATE ( COUNTROWS ( ChurnFeatures ), ChurnFeatures[EligibleForTraining] = 1, REMOVEFILTERS ( ChurnPredictions ) )
+
+-- Folder: 03 Kundenprofil 360° | Format: #,0
+ChurnFeatures[Kunden Transaktionen (Monat)] = SUM ( ChurnFeatures[TransactionCount] )
+
+-- Folder: 03 Kundenprofil 360° | Format: "COP" #,0
+ChurnFeatures[Kunden Transaktionsvolumen (COP)] = SUM ( ChurnFeatures[TotalAmount] )
+
+-- Folder: 03 Kundenprofil 360° | Format: 0.00
+ChurnFeatures[Benchmark Aktive Kunden Transaktionen] = CALCULATE ( AVERAGE ( ChurnFeatures[TransactionCount] ), ALL ( DimCustomer ), ChurnFeatures[TransactionCount] > 0 )
+
+-- Folder: 04 Risikotreiber (XAI) | Format: 0.0 %
+ChurnFeatures[Beobachtete Inaktivitätsquote (Verhalten)] = CALCULATE ( AVERAGE ( ChurnFeatures[InactiveNextMonth] ), ChurnFeatures[EligibleForTraining] = 1 )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Geprüfte Roh-Transaktionen] = SUM ( ChurnFeatures[TransactionCount] )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Kundenmonate Gesamt] = COUNTROWS ( ChurnFeatures )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Monate ohne Transaktionen] = CALCULATE ( COUNTROWS ( ChurnFeatures ), ChurnFeatures[TransactionCount] = 0 )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Aktive Kundenmonate] = CALCULATE ( COUNTROWS ( ChurnFeatures ), ChurnFeatures[TransactionCount] > 0 )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Trainingsfähige Beobachtungen] = CALCULATE ( COUNTROWS ( ChurnFeatures ), ChurnFeatures[EligibleForTraining] = 1 )
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+ChurnFeatures[Verwaiste Schlüssel (Orphans)] = 0
+
+-- Folder: 06 Datenqualität & Governance | Format: #,0
+DimCustomer[Eindeutige Kunden Gesamt] = COUNTROWS ( DimCustomer )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Bewertete aktive Kunden] = DISTINCTCOUNT ( ChurnPredictions[customer_id] )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Bewertete aktive Kunden (Dez 2023)] = CALCULATE ( DISTINCTCOUNT ( ChurnPredictions[customer_id] ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Kunden mit hohem/kritischem Risiko] = CALCULATE ( DISTINCTCOUNT ( ChurnPredictions[customer_id] ), ChurnPredictions[RiskLevel] IN { "Critical", "High" } )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: 0.00 %
+ChurnPredictions[Anteil Hoch-/Kritisch-Risiko] = DIVIDE ( [Kunden mit hohem/kritischem Risiko], [Bewertete aktive Kunden] )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Kunden Top-10% Risiko-Rang] = CALCULATE ( DISTINCTCOUNT ( ChurnPredictions[customer_id] ), ChurnPredictions[IsTop10PctRank] = 1 )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Werthaltige Risikokunden] = CALCULATE ( DISTINCTCOUNT ( ChurnPredictions[customer_id] ), ChurnPredictions[PriorityQuadrant] = "High value + High risk" )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: 0.00 %
+ChurnPredictions[Durchschnittliches Inaktivitätsrisiko] = AVERAGE ( ChurnPredictions[InactiveProbability] )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: "COP" #,0
+ChurnPredictions[Transaktionsvolumen 3M Hochrisiko (COP)] = CALCULATE ( SUM ( ChurnPredictions[TotalAmount_Recent3M] ), ChurnPredictions[RiskLevel] IN { "Critical", "High" } )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: "COP" #,0
+ChurnPredictions[Transaktionsvolumen 3M Gefiltert (COP)] = SUM ( ChurnPredictions[TotalAmount_Recent3M] )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: 0.0 %
+ChurnPredictions[Anteil Risikostufe] = DIVIDE ( [Bewertete aktive Kunden], CALCULATE ( [Bewertete aktive Kunden], ALLSELECTED ( ChurnPredictions[RiskLevel], ChurnPredictions[RiskLevelSort] ) ) )
+
+-- Folder: 01 Management & Frühwarnsystem | Format: #,0
+ChurnPredictions[Durchschnittlicher Priority Score] = AVERAGE ( ChurnPredictions[PriorityScore] )
+
+-- Folder: 03 Kundenprofil 360° | Format: 
+ChurnPredictions[Kunden-ID Auswahl] = SELECTEDVALUE ( DimCustomer[customer_id], "Bitte Kunden auf Seite 2 auswählen" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 0.00 %
+ChurnPredictions[Kunden Inaktivitätsrisiko (Dez 2023)] = CALCULATE ( MAX ( ChurnPredictions[InactiveProbability] ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: #,0
+ChurnPredictions[Kunden Risiko-Rang (Dez 2023)] = CALCULATE ( MAX ( ChurnPredictions[RiskRank] ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 
+ChurnPredictions[Kunden Risikostufe (Dez 2023)] = CALCULATE ( SELECTEDVALUE ( ChurnPredictions[RiskLevel], "-" ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 
+ChurnPredictions[Kunden Prioritätsquadrant (Dez 2023)] = CALCULATE ( SELECTEDVALUE ( ChurnPredictions[PriorityQuadrant], "-" ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: #,0
+ChurnPredictions[Kunden Tage seit letzter Transaktion (Dez 2023)] = CALCULATE ( MAX ( ChurnPredictions[DaysSinceLastTransaction] ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 
+ChurnPredictions[SHAP Treiber Name] = VAR Slot = SELECTEDVALUE ( DriverRankSlot[SlotNumber] ) RETURN CALCULATE ( SWITCH ( Slot, 1, SELECTEDVALUE ( ChurnPredictions[TopDriver1] ), 2, SELECTEDVALUE ( ChurnPredictions[TopDriver2] ), 3, SELECTEDVALUE ( ChurnPredictions[TopDriver3] ) ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 0.00
+ChurnPredictions[SHAP Treiber Wert] = VAR Slot = SELECTEDVALUE ( DriverRankSlot[SlotNumber] ) RETURN CALCULATE ( SWITCH ( Slot, 1, MAX ( ChurnPredictions[TopDriver1Value] ), 2, MAX ( ChurnPredictions[TopDriver2Value] ), 3, MAX ( ChurnPredictions[TopDriver3Value] ) ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: +0.000;-0.000;0.000
+ChurnPredictions[SHAP Treiber Einfluss (Log-Odds)] = VAR Slot = SELECTEDVALUE ( DriverRankSlot[SlotNumber] ) RETURN CALCULATE ( SWITCH ( Slot, 1, MAX ( ChurnPredictions[TopDriver1Impact] ), 2, MAX ( ChurnPredictions[TopDriver2Impact] ), 3, MAX ( ChurnPredictions[TopDriver3Impact] ) ), ChurnPredictions[ScoreType] = "Production (Dec 2023 -> Jan 2024)" )
+
+-- Folder: 03 Kundenprofil 360° | Format: 
+ChurnPredictions[SHAP Treiber Bezeichnung] = VAR Slot = SELECTEDVALUE ( DriverRankSlot[SlotNumber] ) VAR Feat = [SHAP Treiber Name] VAR Val = [SHAP Treiber Wert] RETURN IF ( NOT ISBLANK ( Feat ), Slot & ". " & Feat & " (" & FORMAT ( Val, "0.##" ) & ")", BLANK() )
+
+-- Folder: 04 Transaktionsmix nach Risiko | Format: 0.0 %
+ChurnPredictions[Anteil Zahlungen (Payment %)] = DIVIDE ( SUM ( ChurnPredictions[PaymentCount] ), SUM ( ChurnPredictions[TransactionCount] ) )
+
+-- Folder: 04 Transaktionsmix nach Risiko | Format: 0.0 %
+ChurnPredictions[Anteil Überweisungen (Transfer %)] = DIVIDE ( SUM ( ChurnPredictions[TransferCount] ), SUM ( ChurnPredictions[TransactionCount] ) )
+
+-- Folder: 04 Transaktionsmix nach Risiko | Format: 0.0 %
+ChurnPredictions[Anteil Abhebungen (Withdrawal %)] = DIVIDE ( SUM ( ChurnPredictions[WithdrawalCount] ), SUM ( ChurnPredictions[TransactionCount] ) )
+
+-- Folder: 04 Transaktionsmix nach Risiko | Format: 0.0 %
+ChurnPredictions[Anteil Einzahlungen (Deposit %)] = DIVIDE ( SUM ( ChurnPredictions[DepositCount] ), SUM ( ChurnPredictions[TransactionCount] ) )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ChurnPredictions[Test ROC-AUC] = 0.7405
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ChurnPredictions[Test PR-AUC] = 0.3241
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ChurnPredictions[Test PR-AUC Baseline (Prävalenz)] = 0.1886
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ChurnPredictions[Test Precision @ Top 10 %] = 0.3369
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ChurnPredictions[Test Recall @ Top 10 %] = 0.1786
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.00"x"
+ChurnPredictions[Test Lift @ Top 10 %] = 1.79
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ChurnPredictions[Test Brier Score] = 0.1384
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ChurnPredictions[Test ECE (Kalibrierungsfehler)] = 0.0152
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ChurnPredictions[Test Beobachtete Inaktivitätsquote] = CALCULATE ( AVERAGE ( ChurnPredictions[ActualInactiveNextMonth] ), ChurnPredictions[ScoreType] = "Test (out-of-sample)" )
+
+-- Folder: 04 Risikotreiber (XAI) | Format: 0.0000
+FeatureImportance[Globale SHAP Bedeutung (Test)] = AVERAGE ( FeatureImportance[mean_abs_shap_test] )
+
+-- Folder: 04 Risikotreiber (XAI) | Format: 0.0000
+FeatureImportance[Globale SHAP Bedeutung (Dez Scoring)] = AVERAGE ( FeatureImportance[mean_abs_shap_scoring] )
+
+-- Folder: 04 Risikotreiber (XAI) | Format: +0.00;-0.00;0.00
+FeatureImportance[SHAP Werte-Korrelation (Test)] = AVERAGE ( FeatureImportance[value_shap_correlation_test] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ModelExperiments[Validierungs-PR-AUC] = AVERAGE ( ModelExperiments[val_pr_auc] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0000
+ModelExperiments[Validierungs-ROC-AUC] = AVERAGE ( ModelExperiments[val_roc_auc] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+CalibrationDeciles[Kalibrierung Prognostiziertes Risiko] = AVERAGE ( CalibrationDeciles[MeanPredicted] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+CalibrationDeciles[Kalibrierung Beobachtete Inaktivität] = AVERAGE ( CalibrationDeciles[ObservedRate] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+CalibrationDeciles[Kalibrierung Ideallinie (45°)] = AVERAGE ( CalibrationDeciles[MeanPredicted] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: #,0
+ConfusionMatrixTable[Konfusionsmatrix Kundenanzahl] = SUM ( ConfusionMatrixTable[CustomerCount] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ConfusionMatrixTable[Konfusionsmatrix Anteil] = AVERAGE ( ConfusionMatrixTable[ShareOfTest] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ThresholdPolicyTable[Schwellenwert Precision] = AVERAGE ( ThresholdPolicyTable[Precision] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ThresholdPolicyTable[Schwellenwert Recall] = AVERAGE ( ThresholdPolicyTable[Recall] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.0 %
+ThresholdPolicyTable[Schwellenwert Flagged Share] = AVERAGE ( ThresholdPolicyTable[FlaggedShare] )
+
+-- Folder: 05 Modellgüte (Nov 2023 Test) | Format: 0.000
+ThresholdPolicyTable[Schwellenwert F1] = AVERAGE ( ThresholdPolicyTable[F1Score] )

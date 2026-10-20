@@ -1,0 +1,113 @@
+table,column,data_type,time_available,historical_ml_policy,reason,ml_allowed
+ChurnFeatures,customer_id,VARCHAR,End of month T,METADATA_ONLY,"Identifier, observation date, or redundant observed first-transaction date; never model raw identifiers/dates",No
+ChurnFeatures,Month,DATE,End of month T,METADATA_ONLY,"Identifier, observation date, or redundant observed first-transaction date; never model raw identifiers/dates",No
+ChurnFeatures,CustomerStartMonth,DATE,End of month T,METADATA_ONLY,"Identifier, observation date, or redundant observed first-transaction date; never model raw identifiers/dates",No
+ChurnFeatures,TransactionCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TotalAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,AverageAmount,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,MaxAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransferCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PaymentCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,WithdrawalCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,DepositCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransferAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PaymentAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,WithdrawalAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,DepositAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,FirstTransactionDate,DATE,End of month T,METADATA_ONLY,"Identifier, observation date, or redundant observed first-transaction date; never model raw identifiers/dates",No
+ChurnFeatures,LastTransactionDate,DATE,End of month T,METADATA_ONLY,"Identifier, observation date, or redundant observed first-transaction date; never model raw identifiers/dates",No
+ChurnFeatures,ActiveDays,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,WeekendTransactionCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionsPerCalendarDay,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,WeekendTransactionRatio,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,ObservedTenureMonths,BIGINT,End of month T,EXCLUDE,Calendar-month proxy (left-censored observation window); unseen values appear in test and scoring months,No
+ChurnFeatures,PreferredTransactionType,VARCHAR,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PaymentShare,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransferShare,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,WithdrawalShare,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,DepositShare,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,InactiveMonth,INTEGER,End of month T,EXCLUDE,Constant or eligibility information for active training population,No
+ChurnFeatures,PreviousTransactionCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PreviousTotalAmount,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PreviousPaymentCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PreviousWithdrawalCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PreviousDepositCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,PreviousTransferCount,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionCountChange,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionCountChangePct,DOUBLE,End of month T,ML_CANDIDATE_WITH_NULL_INDICATOR,Previous denominator zero can yield undefined null; impute on train fold only and preserve indicator,Yes
+ChurnFeatures,TotalAmountChange,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TotalAmountChangePct,DOUBLE,End of month T,ML_CANDIDATE_WITH_NULL_INDICATOR,Previous denominator zero can yield undefined null; impute on train fold only and preserve indicator,Yes
+ChurnFeatures,ActivityDeclineFlag,INTEGER,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,ConsecutiveInactiveMonths,BIGINT,End of month T,EXCLUDE,Constant or eligibility information for active training population,No
+ChurnFeatures,DaysSinceLastTransaction,BIGINT,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionCount_Recent3M,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionCount_Previous3M,DOUBLE,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TransactionCount_3M_ChangePct,DOUBLE,End of month T,ML_CANDIDATE_WITH_NULL_INDICATOR,Previous denominator zero can yield undefined null; impute on train fold only and preserve indicator,Yes
+ChurnFeatures,TotalAmount_Recent3M,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TotalAmount_Previous3M,"DECIMAL(38,2)",End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,TotalAmount_3M_ChangePct,DOUBLE,End of month T,ML_CANDIDATE_WITH_NULL_INDICATOR,Previous denominator zero can yield undefined null; impute on train fold only and preserve indicator,Yes
+ChurnFeatures,TransactionDecline50Pct,INTEGER,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,SpendingDecline50Pct,INTEGER,End of month T,ML_CANDIDATE,Behavioral input known at end of T; verify prediction cutoff and training split,Yes
+ChurnFeatures,InactiveNextMonth,INTEGER,Post-T; future month(s),FORBIDDEN,"Future outcome label; only use as supervised target or descriptive target, never a predictor",No
+ChurnFeatures,ExtendedInactivityNext3Months,INTEGER,Post-T; future month(s),FORBIDDEN,"Future outcome label; only use as supervised target or descriptive target, never a predictor",No
+ChurnFeatures,Has6MonthHistory,INTEGER,End of month T,EXCLUDE,Constant or eligibility information for active training population,No
+ChurnFeatures,EligibleForTraining,INTEGER,End of month T,EXCLUDE,Constant or eligibility information for active training population,No
+DimCustomer,customer_id,VARCHAR,Unproven as of T,JOIN_KEY_ONLY,Customer key for dimension join; do not model as category,No
+DimCustomer,age,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,gender,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,location,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,income_bracket,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,occupation,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,education_level,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,marital_status,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,household_size,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,acquisition_channel,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,customer_segment,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,savings_account,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,credit_card,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,personal_loan,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,investment_account,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,insurance_product,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,active_products,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,app_logins_frequency,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,feature_usage_diversity,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,bill_payment_user,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,auto_savings_enabled,BOOLEAN,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,credit_utilization_ratio,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,international_transactions,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,failed_transactions,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,base_satisfaction,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,tx_satisfaction,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,product_satisfaction,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,satisfaction_score,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,nps_score,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,last_survey_date,DATE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,support_tickets_count,BIGINT,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,resolved_tickets_ratio,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,app_store_rating,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,feedback_sentiment,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,feature_requests,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,complaint_topics,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,clv_segment,VARCHAR,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer,customer_lifetime_value,DOUBLE,Unproven as of T,JOIN_OR_DESCRIPTIVE_ONLY,Undated customer-level snapshot: cannot establish historical availability at T. Do not train on this field.,Conditional (descriptive/BI only until as-of timing is proven)
+customer_data raw,churn_probability,vendor-supplied numeric,Unknown/Future possible,FORBIDDEN,Neither target nor ML feature; omitted from processed DimCustomer,No
+DimCustomer (Power BI calculated),CreditUtilizationStatus,STRING,Snapshot display time unknown,JOIN_OR_DESCRIPTIVE_ONLY,UI-only display of original null values; never an ML predictor; original nullable column unchanged,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer (Power BI calculated),FeatureRequestsDisplay,STRING,Snapshot display time unknown,JOIN_OR_DESCRIPTIVE_ONLY,UI-only display of original null values; never an ML predictor; original nullable column unchanged,Conditional (descriptive/BI only until as-of timing is proven)
+DimCustomer (Power BI calculated),ComplaintTopicsDisplay,STRING,Snapshot display time unknown,JOIN_OR_DESCRIPTIVE_ONLY,UI-only display of original null values; never an ML predictor; original nullable column unchanged,Conditional (descriptive/BI only until as-of timing is proven)
+"MLDataset (Python, src/features/build_features.py)",AvgTransactionCount_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Baseline activity level; a drop of current activity below it signals disengagement.,Yes
+"MLDataset (Python, src/features/build_features.py)",AvgTransactionCount_6M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Longer baseline that is less sensitive to a single quiet month.,Yes
+"MLDataset (Python, src/features/build_features.py)",AvgAmount_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Average monthly spend over the last 3 months; falling spend can precede inactivity.,Yes
+"MLDataset (Python, src/features/build_features.py)",AvgAmount_6M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Longer spend baseline.,Yes
+"MLDataset (Python, src/features/build_features.py)",ActiveMonths_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Months with any activity in the last 3: intermittent users are likelier to skip a month.,Yes
+"MLDataset (Python, src/features/build_features.py)",ActiveMonths_6M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Months with any activity in the last 6: habit strength.,Yes
+"MLDataset (Python, src/features/build_features.py)",TransactionCountStdDev_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Volatile activity indicates irregular usage and higher gap risk.,Yes
+"MLDataset (Python, src/features/build_features.py)",AmountStdDev_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Volatile spend indicates irregular usage.,Yes
+"MLDataset (Python, src/features/build_features.py)",TransactionTypeDiversity_3M,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Customers using fewer transaction types are less embedded in the product.,Yes
+"MLDataset (Python, src/features/build_features.py)",Recent3MPaymentShare,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Mix shift toward/away from bill payments (a sticky use case).,Yes
+"MLDataset (Python, src/features/build_features.py)",Recent3MTransferShare,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Mix shift in transfers.,Yes
+"MLDataset (Python, src/features/build_features.py)",Recent3MWithdrawalShare,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Mix shift toward cash withdrawals may signal reduced app usage.,Yes
+"MLDataset (Python, src/features/build_features.py)",Recent3MDepositShare,DOUBLE,End of month T (current and past months only),ML_CANDIDATE,Hypothesis: Mix shift in deposits (money still entering the account).,Yes
+"MLDataset (Python, src/features/build_features.py)",TransactionCountChangePct_IsNull,INTEGER,End of month T,ML_CANDIDATE,Indicator that TransactionCountChangePct is undefined (zero denominator),Yes
+"MLDataset (Python, src/features/build_features.py)",TotalAmountChangePct_IsNull,INTEGER,End of month T,ML_CANDIDATE,Indicator that TotalAmountChangePct is undefined (zero denominator),Yes
+"MLDataset (Python, src/features/build_features.py)",TransactionCount_3M_ChangePct_IsNull,INTEGER,End of month T,ML_CANDIDATE,Indicator that TransactionCount_3M_ChangePct is undefined (zero denominator),Yes
+"MLDataset (Python, src/features/build_features.py)",TotalAmount_3M_ChangePct_IsNull,INTEGER,End of month T,ML_CANDIDATE,Indicator that TotalAmount_3M_ChangePct is undefined (zero denominator),Yes

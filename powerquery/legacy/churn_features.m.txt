@@ -1,0 +1,441 @@
+let
+    Source = CustomerMonthly,
+
+    // Make sure rows are correctly typed
+    Types =
+        Table.TransformColumnTypes(
+            Source,
+            {
+                {"customer_id", type text},
+                {"Month", type date},
+                {"TransactionCount", Int64.Type},
+                {"TotalAmount", type number},
+                {"LastTransactionDate", type date}
+            }
+        ),
+
+    // ============================================================
+    // Function applied independently to every customer
+    // ============================================================
+    AddCustomerFeatures = (CustomerTable as table) as table =>
+        let
+            Sorted =
+                Table.Sort(
+                    CustomerTable,
+                    {{"Month", Order.Ascending}}
+                ),
+
+            AddIndex =
+                Table.AddIndexColumn(
+                    Sorted,
+                    "_i",
+                    0,
+                    1,
+                    Int64.Type
+                ),
+
+            // Buffer lists for better performance
+            Tx =
+                List.Buffer(AddIndex[TransactionCount]),
+
+            Amount =
+                List.Buffer(AddIndex[TotalAmount]),
+
+            LastTxDate =
+                List.Buffer(AddIndex[LastTransactionDate]),
+
+            N =
+                List.Count(Tx),
+
+            // ====================================================
+            // 1. CONSECUTIVE INACTIVE MONTHS
+            // ====================================================
+            AddConsecutiveInactive =
+                Table.AddColumn(
+                    AddIndex,
+                    "ConsecutiveInactiveMonths",
+                    each
+                        let
+                            i = [_i],
+
+                            History =
+                                List.Reverse(
+                                    List.FirstN(
+                                        Tx,
+                                        i + 1
+                                    )
+                                )
+                        in
+                            if Tx{i} <> 0 then
+                                0
+                            else
+                                List.Count(
+                                    List.FirstN(
+                                        History,
+                                        each _ = 0
+                                    )
+                                ),
+                    Int64.Type
+                ),
+
+            // ====================================================
+            // 2. TRANSACTION RECENCY
+            // Days since latest transaction as of month end
+            // ====================================================
+            AddTransactionRecency =
+                Table.AddColumn(
+                    AddConsecutiveInactive,
+                    "DaysSinceLastTransaction",
+                    each
+                        let
+                            i = [_i],
+
+                            PreviousDates =
+                                List.RemoveNulls(
+                                    List.FirstN(
+                                        LastTxDate,
+                                        i + 1
+                                    )
+                                ),
+
+                            LastKnownTransaction =
+                                if List.IsEmpty(PreviousDates) then
+                                    null
+                                else
+                                    List.Max(PreviousDates)
+                        in
+                            if LastKnownTransaction = null then
+                                null
+                            else
+                                Duration.Days(
+                                    Date.EndOfMonth([Month])
+                                    - LastKnownTransaction
+                                ),
+                    Int64.Type
+                ),
+
+            // ====================================================
+            // 3. TRANSACTIONS DURING CURRENT/RECENT 3 MONTHS
+            // ====================================================
+            AddRecent3MonthTx =
+                Table.AddColumn(
+                    AddTransactionRecency,
+                    "TransactionCount_Recent3M",
+                    each
+                        let
+                            i = [_i],
+
+                            StartIndex =
+                                if i >= 2 then
+                                    i - 2
+                                else
+                                    0,
+
+                            Length =
+                                i - StartIndex + 1
+                        in
+                            List.Sum(
+                                List.Range(
+                                    Tx,
+                                    StartIndex,
+                                    Length
+                                )
+                            ),
+                    Int64.Type
+                ),
+
+            // Previous three-month block
+            // Example:
+            // Recent = Apr, May, Jun
+            // Previous = Jan, Feb, Mar
+            AddPrevious3MonthTx =
+                Table.AddColumn(
+                    AddRecent3MonthTx,
+                    "TransactionCount_Previous3M",
+                    each
+                        let
+                            i = [_i]
+                        in
+                            if i < 5 then
+                                null
+                            else
+                                List.Sum(
+                                    List.Range(
+                                        Tx,
+                                        i - 5,
+                                        3
+                                    )
+                                ),
+                    Int64.Type
+                ),
+
+            // ====================================================
+            // 4. 3-MONTH TRANSACTION DECLINE %
+            // ====================================================
+            Add3MonthTxChangePct =
+                Table.AddColumn(
+                    AddPrevious3MonthTx,
+                    "TransactionCount_3M_ChangePct",
+                    each
+                        if [TransactionCount_Previous3M] = null then
+                            null
+
+                        else if [TransactionCount_Previous3M] = 0
+                            and [TransactionCount_Recent3M] = 0
+                        then
+                            0
+
+                        else if [TransactionCount_Previous3M] = 0 then
+                            null
+
+                        else
+                            (
+                                [TransactionCount_Recent3M]
+                                - [TransactionCount_Previous3M]
+                            )
+                            /
+                            [TransactionCount_Previous3M],
+                    Percentage.Type
+                ),
+
+            // ====================================================
+            // 5. RECENT 3-MONTH SPEND
+            // ====================================================
+            AddRecent3MonthAmount =
+                Table.AddColumn(
+                    Add3MonthTxChangePct,
+                    "TotalAmount_Recent3M",
+                    each
+                        let
+                            i = [_i],
+
+                            StartIndex =
+                                if i >= 2 then
+                                    i - 2
+                                else
+                                    0,
+
+                            Length =
+                                i - StartIndex + 1
+                        in
+                            List.Sum(
+                                List.Range(
+                                    Amount,
+                                    StartIndex,
+                                    Length
+                                )
+                            ),
+                    type number
+                ),
+
+            AddPrevious3MonthAmount =
+                Table.AddColumn(
+                    AddRecent3MonthAmount,
+                    "TotalAmount_Previous3M",
+                    each
+                        let
+                            i = [_i]
+                        in
+                            if i < 5 then
+                                null
+                            else
+                                List.Sum(
+                                    List.Range(
+                                        Amount,
+                                        i - 5,
+                                        3
+                                    )
+                                ),
+                    type number
+                ),
+
+            // ====================================================
+            // 6. 3-MONTH SPENDING DECLINE %
+            // ====================================================
+            Add3MonthAmountChangePct =
+                Table.AddColumn(
+                    AddPrevious3MonthAmount,
+                    "TotalAmount_3M_ChangePct",
+                    each
+                        if [TotalAmount_Previous3M] = null then
+                            null
+
+                        else if [TotalAmount_Previous3M] = 0
+                            and [TotalAmount_Recent3M] = 0
+                        then
+                            0
+
+                        else if [TotalAmount_Previous3M] = 0 then
+                            null
+
+                        else
+                            (
+                                [TotalAmount_Recent3M]
+                                - [TotalAmount_Previous3M]
+                            )
+                            /
+                            [TotalAmount_Previous3M],
+                    Percentage.Type
+                ),
+
+            // ====================================================
+            // 7. STRONG DECLINE FLAGS
+            // At least 50% decrease
+            // ====================================================
+            AddTxDeclineFlag =
+                Table.AddColumn(
+                    Add3MonthAmountChangePct,
+                    "TransactionDecline50Pct",
+                    each
+                        if [TransactionCount_3M_ChangePct] <> null
+                            and [TransactionCount_3M_ChangePct] <= -0.50
+                        then 1
+                        else 0,
+                    Int64.Type
+                ),
+
+            AddSpendDeclineFlag =
+                Table.AddColumn(
+                    AddTxDeclineFlag,
+                    "SpendingDecline50Pct",
+                    each
+                        if [TotalAmount_3M_ChangePct] <> null
+                            and [TotalAmount_3M_ChangePct] <= -0.50
+                        then 1
+                        else 0,
+                    Int64.Type
+                ),
+
+            // ====================================================
+// 8. EXTENDED 3-MONTH INACTIVITY TARGET
+//
+// Keep this for analysis, NOT as the primary ML target.
+// ====================================================
+AddExtendedInactivityTarget =
+    Table.AddColumn(
+        AddSpendDeclineFlag,
+        "ExtendedInactivityNext3Months",
+        each
+            let
+                i = [_i]
+            in
+                // Need 3 future months available
+                if i + 3 >= N then
+                    null
+
+                // We only predict from an active month
+                else if Tx{i} = 0 then
+                    null
+
+                else
+                    let
+                        Future3Months =
+                            List.Range(
+                                Tx,
+                                i + 1,
+                                3
+                            )
+                    in
+                        if List.Sum(Future3Months) = 0 then
+                            1
+                        else
+                            0,
+        Int64.Type
+    ),
+
+
+// ====================================================
+// 9. MAIN ML TARGET: NEXT-MONTH INACTIVITY
+//
+// 1 = customer is active now but makes zero
+//     transactions next month
+//
+// 0 = customer remains active next month
+//
+// NULL = target cannot be observed
+// ====================================================
+AddInactiveNextMonth =
+    Table.AddColumn(
+        AddExtendedInactivityTarget,
+        "InactiveNextMonth",
+        each
+            let
+                i = [_i]
+            in
+                // Last month has no future month available
+                if i + 1 >= N then
+                    null
+
+                // Don't predict customers already inactive
+                else if Tx{i} = 0 then
+                    null
+
+                else if Tx{i + 1} = 0 then
+                    1
+
+                else
+                    0,
+        Int64.Type
+    ),
+
+
+// ====================================================
+// 10. REQUIRE ENOUGH CUSTOMER HISTORY
+// ====================================================
+AddHistoryFlag =
+    Table.AddColumn(
+        AddInactiveNextMonth,
+        "Has6MonthHistory",
+        each
+            if [_i] >= 5 then 1 else 0,
+        Int64.Type
+    ),
+
+
+// ====================================================
+// 11. ROWS THAT CAN BE USED FOR ML
+// ====================================================
+    AddTrainingFlag =
+        Table.AddColumn(
+            AddHistoryFlag,
+            "EligibleForTraining",
+            each
+                if [Has6MonthHistory] = 1
+                    and [InactiveNextMonth] <> null
+                    and [TransactionCount] > 0
+                then 1
+                else 0,
+            Int64.Type
+        ),
+
+    RemoveIndex =
+        Table.RemoveColumns(
+            AddTrainingFlag,
+            {"_i"}
+        )
+
+in
+    RemoveIndex,
+
+// ============================================================
+// Run function customer by customer
+// ============================================================
+GroupCustomers =
+    Table.Group(
+        Types,
+        {"customer_id"},
+        {
+            {
+                "CustomerData",
+                each AddCustomerFeatures(_)
+            }
+        }
+    ),
+
+    CombineCustomers =
+    Table.Combine(
+        GroupCustomers[CustomerData]
+    )
+
+in
+    CombineCustomers

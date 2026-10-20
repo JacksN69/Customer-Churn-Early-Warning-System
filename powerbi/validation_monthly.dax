@@ -1,0 +1,19 @@
+// Run in Power BI Desktop DAX Query View (against loaded ChurnFeatures).
+// Compare with reports/customer_monthly_reference.md.
+// This does not substitute for customer-level equality testing.
+EVALUATE
+SUMMARIZECOLUMNS(
+    ChurnFeatures[Month],
+    "CustomerMonths", COUNTROWS(ChurnFeatures),
+    "ActiveMonths", CALCULATE(COUNTROWS(ChurnFeatures), ChurnFeatures[TransactionCount] > 0),
+    "ZeroMonths", CALCULATE(COUNTROWS(ChurnFeatures), ChurnFeatures[TransactionCount] = 0),
+    "Transactions", SUM(ChurnFeatures[TransactionCount]),
+    "TotalAmount", SUM(ChurnFeatures[TotalAmount]),
+    "Eligible", CALCULATE(COUNTROWS(ChurnFeatures), ChurnFeatures[EligibleForTraining] = 1),
+    "Positives", CALCULATE(
+        COUNTROWS(ChurnFeatures),
+        ChurnFeatures[EligibleForTraining] = 1,
+        ChurnFeatures[InactiveNextMonth] = 1
+    )
+)
+ORDER BY ChurnFeatures[Month]

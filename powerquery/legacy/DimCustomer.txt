@@ -1,0 +1,39 @@
+let
+    Source = customer_data,
+    ChangeCustomerIDType =
+        Table.TransformColumnTypes(
+            Source,
+            {
+                {"customer_id", type text}
+            }
+        ),
+    RemoveDuplicateCustomers =
+        Table.Distinct(
+            ChangeCustomerIDType,
+            {"customer_id"}
+        ),
+    RemoveTransactionDerivedColumns =
+        Table.RemoveColumns(
+            RemoveDuplicateCustomers,
+            {
+                "tx_count",
+                "avg_tx_value",
+                "total_tx_volume",
+                "first_tx",
+                "last_tx",
+                "monthly_transaction_count",
+                "average_transaction_value",
+                "total_transaction_volume",
+                "transaction_frequency",
+                "last_transaction_date",
+                "preferred_transaction_type",
+                "first_transaction_date",
+                "weekend_transaction_ratio",
+                "avg_daily_transactions",
+                "customer_tenure",
+                "churn_probability"
+            },
+            MissingField.Ignore
+        )
+in
+    RemoveTransactionDerivedColumns

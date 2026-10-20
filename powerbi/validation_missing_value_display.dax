@@ -1,0 +1,10 @@
+EVALUATE
+ROW(
+ "AllCustomers", COUNTROWS(DimCustomer),
+ "CreditNotApplicable", CALCULATE(COUNTROWS(DimCustomer),DimCustomer[CreditUtilizationStatus]="Not applicable (no credit card)"),
+ "CreditRecorded",CALCULATE(COUNTROWS(DimCustomer),DimCustomer[CreditUtilizationStatus]="Recorded"),
+ "CreditUnrecorded",CALCULATE(COUNTROWS(DimCustomer),DimCustomer[CreditUtilizationStatus]="Not recorded"),
+ "CreditNumericBlanks",CALCULATE(COUNTROWS(DimCustomer),ISBLANK(DimCustomer[credit_utilization_ratio])),
+ "FeatureRequestsNotRecorded", CALCULATE(COUNTROWS(DimCustomer),DimCustomer[FeatureRequestsDisplay]="Not recorded"),
+ "ComplaintsNotRecorded",CALCULATE(COUNTROWS(DimCustomer),DimCustomer[ComplaintTopicsDisplay]="Not recorded")
+)

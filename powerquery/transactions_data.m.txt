@@ -1,0 +1,6 @@
+let
+    Source = Csv.Document(File.Contents("C:\Users\user\Customer Churn Early-Warning System\data\raw\transactions_data.csv"),[Delimiter=",", Columns=4, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"customer_id", Int64.Type}, {"date", type date}, {"amount", Int64.Type}, {"type", type text}})
+in
+    #"Changed Type"
