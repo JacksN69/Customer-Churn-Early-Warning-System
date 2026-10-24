@@ -1,6 +1,6 @@
 """Unit tests for the feature SQL on tiny synthetic data (hand-computable).
 
-Customer A  Jan10 Feb12 Mar8 Apr6 May4 Jun2 Jul0 Aug0 Sep3   (April/May style zero rows)
+Customer A: Jan10 Feb12 Mar8 Apr6 May4 Jun2 Jul0 Aug0 Sep3 (July and August are inactive)
 Customer B  one transaction in Sep (defines the final observed month)
 Customer D  Jan1 Feb1 Mar1 then nothing (extended inactivity)
 """

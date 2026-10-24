@@ -107,7 +107,7 @@ code("""
 shares = ["PaymentShare", "TransferShare", "WithdrawalShare", "DepositShare"]
 comp = lab.groupby("y")[shares].mean().T; comp.columns = ["active next", "inactive next"]
 comp["diff (pp)"] = ((comp["inactive next"] - comp["active next"]) * 100).round(2)
-display((comp * [100, 100, 1]).round(2) if False else comp.round(4))
+display(comp.round(4))
 comp[["active next", "inactive next"]].plot(kind="bar", title="Mean transaction-type share in month T"); plt.show()
 pref = lab.groupby("PreferredTransactionType").y.agg(rows="size", rate="mean"); pref["rate"] = (pref.rate * 100).round(2); display(pref)
 """)

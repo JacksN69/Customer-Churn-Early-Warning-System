@@ -1,7 +1,8 @@
 """Phase 16: LightGBM candidates.
 
 A small, fixed set of configurations is trained on the training months with early
-stopping on the VALIDATION month (PR-AUC). The test month is never used here.
+stopping on validation binary log-loss. PR-AUC is used separately to select
+models; the test month is never used in either step.
 A "behavior+static_profile" variant is trained only as a clearly labelled
 experiment (undated customer snapshot fields; never selectable for production).
 

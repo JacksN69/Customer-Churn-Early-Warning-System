@@ -11,7 +11,7 @@ This project builds a customer churn early-warning report using Python, DuckDB, 
 - `scripts/build_parquet_pipeline.py`: reproducible ETL, writes processed monthly/features/dimension Parquet.
 - `scripts/audit_customer.py`: audits DimCustomer source grain, missingness and key coverage.
 - `docs/FEATURE_REGISTRY.csv`: leakage and availability policy per feature.
-- `powerbi/Customer Churn Early-Warning System.pbix`: Power BI report and model.
+- `powerbi/Customer Churn Early-Warning System.pbix`: local Power BI report (not committed because it may include customer records).
 - `reports/`: generated Markdown audit results.
 - `.venv/` and `scripts/.venv/`: local Python environments; exclude them from contributions.
 
@@ -33,7 +33,7 @@ Dependencies are pinned in `requirements.txt`. The reproducible audit and ETL ru
 .\.venv\Scripts\python.exe scripts\generate_feature_registry.py
 ```
 
-The saved PBIX was migrated to Parquet and verified after closing/reopening. It reads `data/processed/{customer_monthly,churn_features,dim_customer}.parquet` from this PC's absolute Windows project directory. Named CSV source expressions now use `data/raw`. If the workspace moves to a different PC, rebind absolute Windows paths before refreshing.
+The local PBIX uses Parquet files from `data/processed/` and CSV files from `data/raw/`. The repository does not contain the binary PBIX or private source data. Set up the local inputs and rebind Power Query paths when moving to another computer; verify the model after refreshing and reopening Power BI Desktop.
 
 ## Coding Style & Naming Conventions
 
@@ -41,11 +41,11 @@ Use four-space indentation in Python and M. Use `snake_case` for Python variable
 
 ## Testing Guidelines
 
-No automated test framework or coverage threshold exists. After audit changes, run the script and review counts, nulls, transaction types, amounts, and duplicates in the generated report. After M changes, refresh Power BI and verify customer-month uniqueness, inactive months, historical windows, and null/zero handling. Keep features restricted to information available by the observation month. Export updated M queries alongside `.pbix` changes.
+Pytest tests are in `tests/`; no minimum coverage percentage is enforced. Run `python -m pytest tests` from the project root. Tests that require private CSV or Parquet inputs are skipped when those files are unavailable: report both passed and skipped counts. After M changes, refresh Power BI and verify customer-month uniqueness, inactive months, historical windows, and null/zero handling. Keep all prediction features restricted to information available by the observation month. Export updated M queries alongside local `.pbix` changes.
 
 ## Commit & Pull Request Guidelines
 
-This checkout has no Git metadata, so historical commit conventions cannot be verified. Use concise imperative subjects, for example `Fix inactive-month feature calculation`. Describe the change, validation performed, and metric or schema effects in each PR. Link relevant issues and include screenshots for report layout changes.
+Use concise imperative commit subjects, for example `Fix inactive-month feature calculation`. Describe the change, validation performed, and metric or schema effects in each PR. Link relevant issues and include screenshots for report layout changes.
 
 ## Data & Configuration Safety
 
