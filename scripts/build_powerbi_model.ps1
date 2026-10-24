@@ -1,6 +1,14 @@
-﻿$ErrorActionPreference = 'Stop'
-$root = 'C:\Users\user\Customer Churn Early-Warning System'
+﻿param(
+    [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
+    [string]$PowerBIBin = 'C:\Program Files\Microsoft Power BI Desktop\bin'
+)
+
+$ErrorActionPreference = 'Stop'
+$root = (Resolve-Path $ProjectRoot).Path
 $pbix = Join-Path $root 'powerbi\Customer Churn Early-Warning System.pbix'
+if (-not (Test-Path -LiteralPath $pbix)) {
+    throw "Local PBIX not found: $pbix. The PBIX is not included in the public repository."
+}
 $backupDir = Join-Path $root 'powerbi\backups'
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 $backupFile = Join-Path $backupDir 'Customer Churn Early-Warning System.before-dashboard-20261020.pbix'
@@ -9,7 +17,11 @@ if (-not (Test-Path $backupFile)) {
     Write-Output "BACKUP_CREATED: $backupFile"
 }
 
-Add-Type -Path 'C:\Program Files\Microsoft Power BI Desktop\bin\Microsoft.AnalysisServices.Server.Tabular.dll'
+$tabularDll = Join-Path $PowerBIBin 'Microsoft.AnalysisServices.Server.Tabular.dll'
+if (-not (Test-Path -LiteralPath $tabularDll)) {
+    throw "Power BI Tabular assembly not found: $tabularDll. Pass -PowerBIBin for a custom installation."
+}
+Add-Type -Path $tabularDll
 $T = 'Microsoft.AnalysisServices.Tabular'
 
 function Get-PbiPort {
@@ -47,14 +59,14 @@ $port = Wait-ForModel -MaxSeconds 8
 if ($null -eq $port) {
     $procs = Get-Process PBIDesktop -ErrorAction SilentlyContinue
     if ($procs) {
-        Write-Output ("Existing PBIDesktop had 0 databases. Window titles: " + (($procs | ForEach-Object { $_.MainWindowTitle }) -join ' | '))
-        $procs | Stop-Process -Force
-        Start-Sleep -Seconds 3
-        Copy-Item -Path $backupFile -Destination $pbix -Force
-        Write-Output "Restored clean PBIX from backup before launching Power BI Desktop."
+        throw "Power BI Desktop is already running, but its model is not available. Open the intended PBIX and retry. Existing processes and files were left untouched."
+    }
+    $powerBIExe = Join-Path $PowerBIBin 'PBIDesktop.exe'
+    if (-not (Test-Path -LiteralPath $powerBIExe)) {
+        throw "Power BI Desktop executable not found: $powerBIExe. Pass -PowerBIBin for a custom installation."
     }
     Write-Output "Starting Power BI Desktop..."
-    Start-Process -FilePath 'C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe' -ArgumentList "`"$pbix`""
+    Start-Process -FilePath $powerBIExe -ArgumentList "`"$pbix`""
     $port = Wait-ForModel -MaxSeconds 90
 }
 if ($null -eq $port) { throw "Could not find running Power BI Desktop AnalysisServices model." }
@@ -432,7 +444,7 @@ try {
 
 # Run live DAX verification queries against localhost:$port via Microsoft.PowerBI.AdomdClient.dll
 try {
-    Add-Type -Path 'C:\Program Files\Microsoft Power BI Desktop\bin\Microsoft.PowerBI.AdomdClient.dll'
+    Add-Type -Path (Join-Path $PowerBIBin 'Microsoft.PowerBI.AdomdClient.dll')
     $conn = New-Object Microsoft.AnalysisServices.AdomdClient.AdomdConnection("Data Source=localhost:$port")
     $conn.Open()
     $cmd = $conn.CreateCommand()

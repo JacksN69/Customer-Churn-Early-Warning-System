@@ -53,7 +53,7 @@ Folders: `src/` (pipeline code), `tests/` (pytest), `notebooks/` (EDA), `docs/` 
 
 ## Modeling
 Chronological design: train Jun-Sep 2023 (146,093 rows), validation Oct (39,389), test Nov (38,878); production refit Jun-Nov; December scored for January 2024 (38,531 customers, outcome unobserved).
-Candidates: Logistic Regression (unweighted and `class_weight="balanced"`), LightGBM (three configurations, early stopping on validation log-loss), plus the profile experiment. Selection: highest validation PR-AUC. Experiments are logged in [`reports/model_experiments.csv`](reports/model_experiments.csv).
+Candidates: Logistic Regression (unweighted and `class_weight="balanced"`), LightGBM (three configurations, early stopping on validation log-loss), plus the profile experiment. Selection: highest validation PR-AUC. Experiments are logged locally to `reports/model_experiments.csv` (git-ignored). Public summary results are in [`reports/model_evaluation.md`](reports/model_evaluation.md).
 
 ## Evaluation
 November test month (evaluated once), selected model `lightgbm_leaves31`: ROC-AUC 0.740, PR-AUC 0.324 (prevalence 18.9%), Precision@Top10% 33.7% and Recall@Top10% 17.9% (lift 1.8x), Precision@Top5% 34.6%, expected calibration error 0.015. Full tables (confusion matrices at the capacity, F1 and cost thresholds, risk tiers, calibration deciles) are in [`reports/model_evaluation.md`](reports/model_evaluation.md) and `outputs/model_metrics.json`.
@@ -63,7 +63,7 @@ The operating threshold is capacity-based (top 10% of active customers). Risk ti
 SHAP (`outputs/shap_explanations.parquet`, `outputs/feature_importance.csv`) provides TopDriver1-3 with impact and value per scored customer-month. These are **model drivers, not causes of churn**. `AvgTransactionCount_6M` dominates, followed by Previous/Recent 3M transaction counts.
 
 ## Power BI dashboard
-The model (`DimCustomer`, `DimDate`, `ChurnFeatures`, `CustomerMonthly`; relationships `DimCustomer 1:* ChurnFeatures`, `DimDate 1:* ChurnFeatures`, single direction) is ready. The report pages and the `ChurnPredictions` table (from `outputs/churn_predictions.parquet`) are not built yet.
+The repository contains an exported semantic model (`powerbi/model.bim`), DAX measures, and scripts that define six German-language Power BI pages. The exported model includes `ChurnPredictions`; its underlying Parquet file is produced locally. The `.pbix` binary is deliberately not published, so page rendering, dataset refresh, and the saved report must be checked in Power BI Desktop before the dashboard can be treated as delivered.
 
 ## Business implications
 Prioritise outreach using probability x Recent3M value (`PriorityScore`, `PriorityQuadrant` in the predictions). Because most gaps are transient and low-frequency customers drive the signal, treat the score as *inactivity risk*; do not describe customers as lost.
@@ -85,5 +85,5 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pytest tests                           # unit + data tests
 .\.venv\Scripts\python.exe notebooks\build_eda_notebook.py           # re-execute the EDA notebook
 ```
-Inputs live in `data/raw/` and are never modified. The PBIX uses this PC's absolute Windows paths; rebind them if the project moves. Raw/processed data, PBIX files, models and `outputs/` are git-ignored because they hold customer-level records.
+Inputs live in `data/raw/` and are never modified. Raw and processed data, PBIX binaries, and model/prediction artifacts are git-ignored because they may include customer-level records. A fresh public checkout cannot reproduce the published metrics until the source datasets are supplied locally. For the Power BI build, use the report-generation scripts and adjust local paths as documented in [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
 The earlier exploratory scripts under `scripts/` (`train_baseline.py`, `model_diagnostics.py`, ...) are superseded by `src/` and kept for history.

@@ -1,4 +1,6 @@
-# Project status — 16 October 2026
+# Project status — 20 October 2026
+
+The numerical results below are from the locally executed October 16 pipeline. The public checkout does not contain private datasets or the final PBIX binary.
 
 ## Done and verified
 - Raw audit, 3,159,157 transactions / 48,723 customers (`reports/data_quality_raw.md`).
@@ -18,6 +20,6 @@
 - Customer profile attributes carry almost no signal; adding them did not improve validation PR-AUC (0.3054 vs 0.3123), supporting the transaction-only model.
 
 ## Remaining
-- Power BI 6-page German IBCS dashboard (`01 Management-Übersicht` through `06 Datenqualität`, 74 visuals) is injected into `powerbi/Customer Churn Early-Warning System.pbix`, and `scripts/build_powerbi_model.ps1` loads/refreshes all 13 tables, relationships, calculated columns, and 51 German DAX measures (`powerbi/dashboard_measures.dax`, `powerbi/model.bim`). After running `scripts/build_powerbi_model.ps1` with Power BI Desktop open, press `Ctrl+S` in Power BI Desktop to persist the updated `DataModel` binary inside `.pbix`.
+- The Power BI generator defines six German-language report pages and 74 visuals. The repository also includes an exported semantic model (`powerbi/model.bim`), DAX definitions, and `scripts/build_powerbi_model.ps1` to update a local PBIX. The binary report is excluded from Git. On a Windows machine with the private inputs, verify the six pages, model refresh and saved file in Power BI Desktop before claiming the dashboard is complete.
 - Optional: XGBoost candidate, independent calibration period, decide whether CustomerMonthly load should be disabled (it duplicates ChurnFeatures).
 - January 2024 outcomes are unobserved, so December scores cannot be validated.

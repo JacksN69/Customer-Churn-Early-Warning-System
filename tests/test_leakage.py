@@ -1,7 +1,6 @@
 """Temporal-leakage guards for the ML dataset (Phases 9, 12, 13, 14)."""
 import json
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -60,8 +59,9 @@ def test_rolling_features_use_only_current_and_past_months():
     cf["Month"] = pd.to_datetime(cf["Month"])
     df = pd.read_parquet(config.ML_DATASET)
     df["Month"] = pd.to_datetime(df["Month"])
-    rng = np.random.default_rng(config.RANDOM_STATE)
-    sample = df[df["split"].isin(["train", "validation", "test", "score"])].sample(400, random_state=1)
+    eligible = df[df["split"].isin(["train", "validation", "test", "score"])]
+    assert not eligible.empty, "no rows available for temporal leakage validation"
+    sample = eligible.sample(n=min(400, len(eligible)), random_state=config.RANDOM_STATE)
     cf = cf[cf["customer_id"].isin(set(sample["customer_id"]))]
     for _, r in sample.iterrows():
         hist = cf[(cf["customer_id"] == r["customer_id"]) & (cf["Month"] <= r["Month"])].sort_values("Month")
@@ -70,4 +70,3 @@ def test_rolling_features_use_only_current_and_past_months():
         assert r["AvgAmount_3M"] == pytest.approx(float(last3["TotalAmount"].mean()), rel=1e-9)
         assert r["ActiveMonths_6M"] == (last6["TransactionCount"] > 0).sum()
         assert r["TransactionCountStdDev_3M"] == pytest.approx(last3["TransactionCount"].std(ddof=1), nan_ok=True)
-    assert rng is not None
